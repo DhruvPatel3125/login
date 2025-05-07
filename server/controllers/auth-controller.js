@@ -1,76 +1,97 @@
 const User = require("../models/user-model");
 const bcrypt = require("bcryptjs");
 
-//home page//
-
+// Render pages
 const home = async (req, res) => {
-  try {
-    res.status(200).send("welcome to home page");
-  } catch (error) {
-    console.log(error);
+  if (req.session.user) {
+    res.redirect("/home");
+  } else {
+    res.render("login", { error: null });
   }
 };
-//register page
+
+const registerForm = async (req, res) => {
+  if (req.session.user) {
+    res.redirect("/home");
+  } else {
+    res.render("register", { error: null });
+  }
+};
+
+// API handlers
 const register = async (req, res) => {
   try {
-    console.log(req.body);
     const { username, email, phone, password } = req.body;
 
-    const userExiat = await User.findOne({ email: email });
-    if (userExiat) {
-      return res.status(400).json({ message: "User email already exists" });
+    const userExist = await User.findOne({ email });
+    if (userExist) {
+      return res.render("register", { error: "Email already registered" });
     }
 
-    // //hash the password
-    // const saltRound = 10;
-    // const hash_password = await bcrypt.hash(password, saltRound)
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     const userCreate = await User.create({
       username,
       email,
       phone,
-      password,
+      password: hashedPassword,
     });
-    res
-      .status(201)
-      .json({
-        message: "User registration successfully",
-        token: await userCreate.generateToken(),
-        userId: userCreate._id.toString(),
-      });
-    const data = await User.find;
 
-    res.status(200).json({ data });
+    // Set session and redirect
+    req.session.user = {
+      id: userCreate._id,
+      username: userCreate.username,
+      email: userCreate.email,
+      phone: userCreate.phone,
+      createdAt: userCreate.createdAt,
+    };
+
+    res.redirect("/home");
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    res.render("register", { error: "Registration failed. Please try again." });
   }
-
 };
 
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-//login page
-
-const login = async (req,res)=>{
-    try {
-        const {email,password} = req.body;
-        const userExist = await User.findOne({ email });
-        if(!userExist){
-            return res.status(400).json({message: "Invalid creadentiols"})
-        }
-        const user = await bcrypt.compare(password, userExist.password);
-        if(user){
-            return res.status(200).json({
-                message: "Login successfully",
-                token: await userExist.generateToken(),
-                userId: userExist._id.toString(),
-            })
-        }else{
-            return res.status(400).json({message: "Invalid email or password"})
-        }
-
-    } catch (error) {
-        console.log(error);
-        
+    const userExist = await User.findOne({ email });
+    if (!userExist) {
+      return res.render("login", { error: "Invalid credentials" });
     }
-}
-module.exports = { home, register, login};
+
+    const isPasswordValid = await bcrypt.compare(password, userExist.password);
+    if (!isPasswordValid) {
+      return res.render("login", { error: "Invalid credentials" });
+    }
+
+    // Set session and redirect
+    req.session.user = {
+      id: userExist._id,
+      username: userExist.username,
+      email: userExist.email,
+      phone: userExist.phone,
+      createdAt: userExist.createdAt,
+    };
+
+    res.redirect("/home");
+  } catch (error) {
+    console.error(error);
+    res.render("login", { error: "Login failed. Please try again." });
+  }
+};
+
+const logout = async (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Logout error:", err);
+    }
+    res.redirect("/");
+  });
+};
+
+module.exports = { home, registerForm, register, login, logout };

@@ -1,5 +1,7 @@
 {
   "dependencies": {
-    "joi": "^17.13.3"
+    "bcryptjs": "^3.0.2",
+    "connect-mongodb-session": "^5.0.0",
+    "express-session": "^1.18.1"
   }
 }
