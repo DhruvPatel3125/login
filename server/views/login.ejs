@@ -19,13 +19,17 @@
     <div class="container">
         <div class="login-container">
             <h2 class="text-center mb-4">Login</h2>
-            <% if (typeof error !== 'undefined') { %>
-                <div class="alert alert-danger"><%= error %></div>
+            <% if (typeof error !== 'undefined' && error) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <%= error %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             <% } %>
             <form action="/login" method="POST">
                 <div class="mb-3">
                     <label for="email" class="form-label">Email address</label>
-                    <input type="email" class="form-control" id="email" name="email" required>
+                    <input type="email" class="form-control" id="email" name="email" 
+                           value="<%= typeof formData !== 'undefined' && formData.email ? formData.email : '' %>" required>
                 </div>
                 <div class="mb-3">
                     <label for="password" class="form-label">Password</label>

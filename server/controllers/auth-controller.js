@@ -28,15 +28,12 @@ const register = async (req, res) => {
       return res.render("register", { error: "Email already registered" });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
+    // Create user - password hashing is handled by the model's pre-save middleware
     const userCreate = await User.create({
       username,
       email,
       phone,
-      password: hashedPassword,
+      password,
     });
 
     // Set session and redirect
@@ -59,17 +56,33 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // First check if user exists
     const userExist = await User.findOne({ email });
     if (!userExist) {
-      return res.render("login", { error: "Invalid credentials" });
+      return res.render("login", {
+        error: "Email not registered. Please check your email or register.",
+        formData: { email },
+      });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, userExist.password);
-    if (!isPasswordValid) {
-      return res.render("login", { error: "Invalid credentials" });
+    // Then verify password
+    try {
+      const isPasswordValid = await bcrypt.compare(password, userExist.password);
+      if (!isPasswordValid) {
+        return res.render("login", {
+          error: "Incorrect password. Please try again.",
+          formData: { email },
+        });
+      }
+    } catch (bcryptError) {
+      console.error("Password comparison error:", bcryptError);
+      return res.render("login", {
+        error: "Authentication failed. Please try again.",
+        formData: { email },
+      });
     }
 
-    // Set session and redirect
+    // Set session and redirect on success
     req.session.user = {
       id: userExist._id,
       username: userExist.username,
@@ -80,8 +93,11 @@ const login = async (req, res) => {
 
     res.redirect("/home");
   } catch (error) {
-    console.error(error);
-    res.render("login", { error: "Login failed. Please try again." });
+    console.error("Login error:", error);
+    res.render("login", {
+      error: "Login failed. Please try again.",
+      formData: { email: req.body.email },
+    });
   }
 };
 

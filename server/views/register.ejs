@@ -19,7 +19,7 @@
     <div class="container">
         <div class="register-container">
             <h2 class="text-center mb-4">Register</h2>
-            <% if (typeof error !== 'undefined') { %>
+            <% if (typeof error == error) { %>
                 <div class="alert alert-danger"><%= error %></div>
             <% } %>
             <form action="/register" method="POST">
