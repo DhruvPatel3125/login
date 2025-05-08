@@ -24,6 +24,12 @@
 <body>
     <div class="container">
         <div class="dashboard-container">
+            <% if (typeof error !== 'undefined' && error) { %>
+                <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+                    <%= error %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <% } %>
             <div class="welcome-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <h2>Welcome, <%= user.username %></h2>

@@ -1,5 +1,6 @@
 const User = require("../models/user-model");
 const bcrypt = require("bcryptjs");
+const { sendWelcomeEmail } = require("../utils/email");
 
 // Render pages
 const home = async (req, res) => {
@@ -25,7 +26,10 @@ const register = async (req, res) => {
 
     const userExist = await User.findOne({ email });
     if (userExist) {
-      return res.render("register", { error: "Email already registered" });
+      return res.render("register", {
+        error: "Email already registered",
+        formData: req.body,
+      });
     }
 
     // Create user - password hashing is handled by the model's pre-save middleware
@@ -36,7 +40,27 @@ const register = async (req, res) => {
       password,
     });
 
-    // Set session and redirect
+    // Send welcome email
+    try {
+      await sendWelcomeEmail(email, username);
+    } catch (emailError) {
+      console.error("Failed to send welcome email:", emailError);
+      // Create session but show warning about email
+      req.session.user = {
+        id: userCreate._id,
+        username: userCreate.username,
+        email: userCreate.email,
+        phone: userCreate.phone,
+        createdAt: userCreate.createdAt,
+      };
+      return res.render("home", {
+        user: req.session.user,
+        error:
+          "Account created successfully, but we couldn't send the welcome email. Please check your email settings.",
+      });
+    }
+
+    // Set session and redirect on complete success
     req.session.user = {
       id: userCreate._id,
       username: userCreate.username,
@@ -47,8 +71,11 @@ const register = async (req, res) => {
 
     res.redirect("/home");
   } catch (error) {
-    console.error(error);
-    res.render("register", { error: "Registration failed. Please try again." });
+    console.error("Registration error:", error);
+    res.render("register", {
+      error: "Registration failed. Please try again.",
+      formData: req.body,
+    });
   }
 };
 
