@@ -7,7 +7,6 @@ const userSchema = new mongoose.Schema({
     username: {
         type: String,
         required: true,
-        unique: true,
     },
     email: {
         type: String,
@@ -26,6 +25,16 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    otp: {
+        type: String,
+    },
+    otpExpires: {
+        type: Date,
+    }
 })
 //define a models and the collection name 
 userSchema.pre('save',async function(next){
@@ -58,6 +67,19 @@ userSchema.methods.generateToken = async function(){
         
     }
 }
+
+// Generate OTP
+userSchema.methods.generateOTP = function() {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    this.otp = otp;
+    this.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // OTP valid for 10 minutes
+    return otp;
+};
+
+// Verify OTP
+userSchema.methods.verifyOTP = function(enteredOTP) {
+    return this.otp === enteredOTP && this.otpExpires > Date.now();
+};
 
 
 const User  = new mongoose.model('User', userSchema);
