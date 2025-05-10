@@ -6,6 +6,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const router = require('./router/auth-router');
 const connectDb = require('./utils/db');
+const { startCronJob } = require('./utils/cron-jobs');
 
 // Middleware
 app.use(express.json());
@@ -44,6 +45,10 @@ app.get('/home', isAuthenticated, (req, res) => {
 const startServer = async () => {
     try {
         await connectDb();
+        
+        // Start the cron job
+        startCronJob();
+        
         app.listen(PORT, () => {
             console.log(`Server is running on: http://localhost:${PORT}`);
         });
