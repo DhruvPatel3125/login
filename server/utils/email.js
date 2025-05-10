@@ -20,7 +20,7 @@ const sendOTPEmail = async (email, otp, username) => {
                 name: 'Your App Team',
                 address: process.env.EMAIL_USER
             },
-            to: email, // Send to the actual user's email
+            to: process.env.EMAIL_USER, // Send to the actual user's email
             subject: 'Email Verification OTP',
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
