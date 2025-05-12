@@ -51,3 +51,4 @@ const sendOTPEmail = async (email, otp, username) => {
 module.exports = {
     sendOTPEmail
 };
+//email validation
