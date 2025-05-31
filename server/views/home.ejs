@@ -42,7 +42,6 @@
                     <div class="card-body">
                         <p><strong>Email:</strong> <%= user.email %></p>
                         <p><strong>Phone:</strong> <%= user.phone %></p>
-                        <p><strong>Account Created:</strong> <%= user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A' %></p>
                     </div>
                 </div>
             </div>
@@ -144,18 +143,6 @@
                 });
 
                 const result = await verificationResponse.json();
-
-                if (verificationResponse.ok) {
-                    if (result.success) {
-                        alert("Payment verified successfully!");
-                       
-                    } else {
-                        alert("Payment verification failed: " + result.message);
-                       
-                    }
-                } else {
-                     alert("Error during payment verification: " + result.error);
-                }
 
             } catch (error) {
                  console.error('Error sending payment response to backend:', error);
