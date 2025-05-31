@@ -6,6 +6,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const router = require('./router/auth-router');
 const connectDb = require('./utils/db');
+const paymentRoutes = require('./router/paymentRoutes');
 
 // Middleware
 app.use(express.json());
@@ -37,8 +38,12 @@ const isAuthenticated = (req, res, next) => {
 
 // Routes
 app.use("/", router);
+app.use("/", paymentRoutes);
 app.get('/home', isAuthenticated, (req, res) => {
-    res.render('home', { user: req.session.user });
+    res.render('home', { 
+        user: req.session.user,
+        razorpayKeyId: process.env.RAZORPAY_KEY_ID
+    });
 });
 
 const startServer = async () => {
