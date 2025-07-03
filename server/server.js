@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
+const passport = require('./utils/passport');
 const app = express();
 const PORT = process.env.PORT || 5000;
 const router = require('./router/auth-router');
@@ -19,6 +20,10 @@ app.use(session({
     saveUninitialized: false,
     cookie: { secure: false } // set to true if using https
 }));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Set EJS as templating engine
 app.set('view engine', 'ejs');
