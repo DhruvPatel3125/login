@@ -19,15 +19,10 @@ router.get('/resend-otp', authcontrollers.resendOTP);
 // Google
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'], prompt: 'select_account' }));
 router.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), (req, res) => {
-  // Set session user
-  req.session.user = {
-    id: req.user._id,
-    username: req.user.username,
+  res.render('verify-otp', {
     email: req.user.email,
-    phone: req.user.phone,
-    createdAt: req.user.createdAt,
-  };
-  res.redirect('/home');
+    error: null
+  });
 });
 
 module.exports = router;

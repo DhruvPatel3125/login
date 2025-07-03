@@ -16,6 +16,7 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
+
 // Google Strategy
 passport.use(
     new GoogleStrategy({
@@ -32,9 +33,17 @@ passport.use(
                     email: profile.emails[0].value,
                     password: Math.random().toString(36).slice(-8), // random password
                     phone: "0000000000", // or prompt user to fill later
-                    isVerified: true
+                    isVerified: false
                 });
+            }else{
+                user.isVerified = false;
+                await user.save();
             }
+
+            const otp = user.generateOTP();
+            await user.save();
+            const {sendOTPEmail} = require('./email');
+            await sendOTPEmail(user.email,otp,user.username);
             return done(null, user);
         } catch (err) {
             return done(err, null);
